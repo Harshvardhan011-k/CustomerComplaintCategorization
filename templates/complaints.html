@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1">Full Complaints List</h2>
+        <p class="text-muted mb-0">Sorted by Priority (Highest First)</p>
+    </div>
+    <div class="d-flex flex-column gap-3 align-items-md-end">
+        <div class="bg-light p-1 rounded-pill d-inline-flex shadow-sm">
+            <a class="btn rounded-pill px-4 fw-semibold {% if current_status == 'pending' %}btn-primary{% else %}text-muted{% endif %} border-0" 
+               href="{{ url_for('complaints_list', status='pending', priority=current_filter) }}">Pending</a>
+            <a class="btn rounded-pill px-4 fw-semibold {% if current_status == 'acknowledged' %}btn-primary{% else %}text-muted{% endif %} border-0" 
+               href="{{ url_for('complaints_list', status='acknowledged', priority=current_filter) }}">Acknowledged</a>
+        </div>
+        <div class="btn-group shadow-sm rounded-pill overflow-hidden" role="group">
+            <a href="{{ url_for('complaints_list', status=current_status) }}"
+                class="btn {% if not current_filter %}btn-dark{% else %}btn-outline-dark{% endif %} px-4 fw-semibold border-0">All</a>
+            <a href="{{ url_for('complaints_list', status=current_status, priority='High') }}"
+                class="btn {% if current_filter == 'High' %}btn-danger{% else %}btn-outline-danger{% endif %} px-4 fw-semibold border-0">High</a>
+            <a href="{{ url_for('complaints_list', status=current_status, priority='Medium') }}"
+                class="btn {% if current_filter == 'Medium' %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %} px-4 fw-semibold border-0">Medium</a>
+            <a href="{{ url_for('complaints_list', status=current_status, priority='Low') }}"
+                class="btn {% if current_filter == 'Low' %}btn-success{% else %}btn-outline-success{% endif %} px-4 fw-semibold border-0">Low</a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-muted small text-uppercase fw-bold">
+                <tr>
+                    <th class="px-4 py-4">Sr</th>
+                    <th class="py-4">User Name</th>
+                    <th class="py-4">Topic</th>
+                    <th class="py-4">Full Complaint Text</th>
+                    <th class="py-4 text-center">Priority</th>
+                    <th class="py-4">Timestamp</th>
+                    <th class="py-4 text-center">Ack.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in complaints %}
+                <tr>
+                    <td class="px-4 py-4 text-muted">{{ loop.index }}</td>
+                    <td class="py-4 fw-bold text-dark">{{ c.user_name }}</td>
+                    <td class="py-4"><span class="badge bg-light text-dark border rounded-pill">{{ c.predicted_topic or
+                            'N/A' }}</span></td>
+                    <td class="py-4 text-muted lh-base" style="min-width: 300px;">{{ c.complaint_text }}</td>
+                    <td class="py-4 text-center">
+                        <span
+                            class="badge {% if c.predicted_priority == 'High' %}bg-danger{% elif c.predicted_priority == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %} rounded-pill px-4 py-2 fw-medium fs-6 shadow-sm">
+                            {{ c.predicted_priority }}
+                        </span>
+                    </td>
+                    <td class="py-4 text-muted small fw-medium">{{ c.created_at[:16].replace('T', ' ') }}</td>
+                    <td class="py-4 text-center">
+                        <input class="form-check-input ack-checkbox fs-5 shadow-sm" type="checkbox" data-id="{{ c.id }}" {% if c.acknowledged %}checked{% endif %} style="cursor: pointer;">
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not complaints %}
+                <tr>
+                    <td colspan="5" class="py-5 text-center text-muted">No complaints found for this filter.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.ack-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const complaintId = this.getAttribute('data-id');
+            const isAcknowledged = this.checked;
+            
+            fetch(`/acknowledge/${complaintId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ acknowledged: isAcknowledged })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert('Failed to update status: ' + (data.message || 'Unknown error'));
+                    this.checked = !isAcknowledged; // revert
+                } else {
+                    const row = this.closest('tr');
+                    row.style.transition = 'opacity 0.4s ease';
+                    row.style.opacity = '0';
+                    setTimeout(() => row.remove(), 400);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating the status.');
+                this.checked = !isAcknowledged; // revert
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,7 @@
+flask
+supabase
+python-dotenv
+scikit-learn
+joblib
+flask-bcrypt
+bcrypt

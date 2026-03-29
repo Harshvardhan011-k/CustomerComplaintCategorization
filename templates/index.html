@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden mt-5">
+            <div class="card-header bg-primary py-4 text-center">
+                <h3 class="text-white mb-0 fw-bold">Submit Your Complaint</h3>
+                <p class="text-white-50 mb-0 small">Help us improve our service by sharing your feedback</p>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <form action="{{ url_for('submit_complaint') }}" method="POST" class="needs-validation" novalidate>
+                    <div class="mb-4">
+                        <label for="user_name" class="form-label fw-semibold">Full Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i
+                                    class="bi bi-person"></i></span>
+                            <input type="text" class="form-control bg-light border-start-0 ps-0" id="user_name"
+                                name="user_name" placeholder="Enter your full name" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="complaint_text" class="form-label fw-semibold">Complaint Details</label>
+                        <textarea class="form-control bg-light" id="complaint_text" name="complaint_text" rows="6"
+                            placeholder="Describe your issue in detail (min 20 characters)..." required></textarea>
+                    </div>
+                    <div class="d-grid mt-5">
+                        <button type="submit"
+                            class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow-sm hover-up">
+                            Register Complaint <i class="bi bi-chevron-right ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-up:hover {
+        transform: translateY(-3px);
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<script>
+    // Example starter JavaScript for disabling form submissions if there are invalid fields
+    (() => {
+        'use strict'
+        const forms = document.querySelectorAll('.needs-validation')
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+{% endblock %}
